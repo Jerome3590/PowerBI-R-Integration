@@ -1,0 +1,366 @@
+---
+title: "PowerBI R Integration Script"
+author: "Jerome Dixon"
+date: "8/18/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+
+library(ggplot2)
+library(viridis)
+library(hrbrthemes)
+library(gtable)
+library(lubridate)
+library(dplyr)
+library(tidyr)
+library(magrittr)
+library(data.table)
+library(reshape2)
+library(gridExtra)
+
+```
+
+
+
+```{r}
+
+point1 <- 30
+point2 <- 60
+point3 <- 120
+
+
+pos <- c(point1, point2, point3)
+pos_df <- as.data.frame(pos)
+
+
+dos4 <- 15
+dos3 <- 180
+dos2 <- 45
+dos1 <- 90
+
+dos <- c(dos1, dos2, dos3, dos4)
+dos_df <- as.data.frame(dos)
+
+unit <- c("Webelos")
+feed_plan <- 4
+final_location <- c("Camp Washington")
+
+```
+
+
+```{r}
+
+start_date <- as.Date(mdy_hms("8/12/2019 12:00:00 AM"))
+start_date2 <- start_date + dos1 + 1
+start_date3 <- start_date2 + dos2 + 1
+start_date4 <- start_date3 + dos3 + 1
+
+```
+
+
+```{r DOS 1}
+
+dos1_df <- as.data.frame(dos_df[1,])
+
+DOS1_df <- dos1_df %>%
+  mutate(Date = start_date) %>%
+  complete(Date = seq.Date(start_date, (start_date + dos1), by="day"), dos1_df) %>%
+  mutate(Scout_Numbers = pos[1]) %>%
+  mutate(Feed_Plan = feed_plan) %>%
+  mutate(Unit = unit) %>%
+  mutate(`Final Campsite Location` = final_location)
+
+
+names(DOS1_df)[2] <- "DOS"
+
+
+```
+
+
+
+```{r DOS 2}
+
+dos2_df <- as.data.frame(dos_df[2,])
+
+DOS2_df <- dos2_df %>%
+  mutate(Date = as.Date(start_date2)) %>%
+  complete(Date = seq.Date(start_date2, (start_date2 + dos2), by="day"), dos2_df) %>%
+  mutate(Scout_Numbers = pos[1] + pos[2]) %>%
+  mutate(Feed_Plan = feed_plan) %>%
+  mutate(Unit = unit) %>%
+  mutate(`Final Campsite Location` = final_location)
+
+names(DOS2_df)[2] <- "DOS"
+
+
+```
+
+
+
+```{r DOS 3}
+
+dos3_df <- as.data.frame(dos_df[3,])
+
+DOS3_df <- dos3_df %>%
+  mutate(Date = as.Date(start_date3)) %>%
+  complete(Date = seq.Date(start_date3, (start_date3 + dos3), by="day"), dos3_df) %>%
+  mutate(scouts_Numbers = pos[1] + pos[2] + pos[3]) %>%
+  mutate(Feed_Plan = feed_plan) %>%
+  mutate(Unit = unit) %>%
+  mutate(`Final Campsite Location` = final_location)
+
+names(DOS3_df)[2] <- "DOS"
+
+
+```
+
+
+
+```{r DOS 4}
+
+dos4_df <- as.data.frame(dos_df[4,])
+
+DOS4_df <- dos4_df %>%
+  mutate(Date = as.Date(start_date4)) %>%
+  complete(Date = seq.Date(start_date4, (start_date4 + dos4), by="day"), dos4_df) %>%
+  mutate(scouts_Numbers = pos[1] + pos[2] + pos[3]) %>%
+  mutate(Feed_Plan = feed_plan) %>%
+  mutate(Unit = unit) %>%
+  mutate(`Final Camp Location` = final_location)
+
+names(DOS4_df)[2] <- "DOS"
+
+
+```
+
+
+```{r DOS 1 Continued}
+
+DOS1_df_updated <- DOS1_df %>%
+  mutate(`MEALS READY TO EAT (MRE)` = case_when(
+    feed_plan == 1 ~ pos[1] * 3,
+    feed_plan == 2 ~ pos[1] * 2,
+    feed_plan == 3 ~ pos[1] * .66,
+    feed_plan == 4 ~ pos[1] * .47)
+  ) %>% 
+
+  mutate(`UGR(H&S)-BREAKFAST` = case_when(
+    feed_plan == 1 ~ pos[1] * 0,
+    feed_plan == 2 ~ pos[1] * 0,
+    feed_plan == 3 ~ pos[1] * 0,
+    feed_plan == 4 ~ pos[1] * .2)
+  ) %>% 
+
+  mutate(`UGR(H&S)-LUNCH/DINNER` = case_when(
+    feed_plan == 1 ~ pos[1] * 0,
+    feed_plan == 2 ~ pos[1] * 0,
+    feed_plan == 3 ~ pos[1] * .33,
+    feed_plan == 4 ~ pos[1] * 0)
+  ) %>% 
+
+  mutate(`UGR(M)-BREAKFAST` = case_when(
+    feed_plan == 1 ~ pos[1] * 0,
+    feed_plan == 2 ~ pos[1] * .5,
+    feed_plan == 3 ~ pos[1] * 1,
+    feed_plan == 4 ~ pos[1] * .33)
+  ) %>% 
+
+  mutate(`UGR(M)-LUNCH/DINNER` = case_when(
+    feed_plan == 1 ~ pos[1] * 0,
+    feed_plan == 2 ~ pos[1] * 0,
+    feed_plan == 3 ~ pos[1] * 0,
+    feed_plan == 4 ~ pos[1] * .33)
+  )
+
+```
+
+
+
+```{r DOS 2 Continued}
+
+DOS2_df_updated <- DOS2_df %>%
+  mutate(`MEALS READY TO EAT (MRE)` = case_when(
+    feed_plan == 1 ~ pos[1] + pos[2] * 3,
+    feed_plan == 2 ~ pos[1] + pos[2] * 2,
+    feed_plan == 3 ~ pos[1] + pos[2] * .66,
+    feed_plan == 4 ~ pos[1] + pos[2] * .47)
+  ) %>% 
+
+  mutate(`UGR(H&S)-BREAKFAST` = case_when(
+    feed_plan == 1 ~ pos[1] + pos[2] * 0,
+    feed_plan == 2 ~ pos[1] + pos[2] * 0,
+    feed_plan == 3 ~ pos[1] + pos[2] * 0,
+    feed_plan == 4 ~ pos[1] + pos[2] * .2)
+  ) %>% 
+
+  mutate(`UGR(H&S)-LUNCH/DINNER` = case_when(
+    feed_plan == 1 ~ pos[1] + pos[2] * 0,
+    feed_plan == 2 ~ pos[1] + pos[2] * 0,
+    feed_plan == 3 ~ pos[1] + pos[2] * .33,
+    feed_plan == 4 ~ pos[1] + pos[2] * 0)
+  ) %>% 
+
+  mutate(`UGR(M)-BREAKFAST` = case_when(
+    feed_plan == 1 ~ pos[1] + pos[2] * 0,
+    feed_plan == 2 ~ pos[1] + pos[2] * .5,
+    feed_plan == 3 ~ pos[1] + pos[2] * 1,
+    feed_plan == 4 ~ pos[1] + pos[2] * .33)
+  ) %>% 
+
+  mutate(`UGR(M)-LUNCH/DINNER` = case_when(
+    feed_plan == 1 ~ pos[1] + pos[2] * 0,
+    feed_plan == 2 ~ pos[1] + pos[2] * 0,
+    feed_plan == 3 ~ pos[1] + pos[2] * 0,
+    feed_plan == 4 ~ pos[1] + pos[2] * .33)
+  )
+
+```
+
+
+
+
+```{r DOS 3 Continued}
+
+DOS3_df_updated <- DOS3_df %>%
+  mutate(`MEALS READY TO EAT (MRE)` = case_when(
+    feed_plan == 1 ~ pos[1] + pos[2] + pos[3] * 3,
+    feed_plan == 2 ~ pos[1] + pos[2] + pos[3] * 2,
+    feed_plan == 3 ~ pos[1] + pos[2] + pos[3] * .66,
+    feed_plan == 4 ~ pos[1] + pos[2] + pos[3] * .47)
+  ) %>% 
+
+  mutate(`UGR(H&S)-BREAKFAST` = case_when(
+    feed_plan == 1 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 2 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 3 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 4 ~ pos[1] + pos[2] + pos[3] * .2)
+  ) %>% 
+
+  mutate(`UGR(H&S)-LUNCH/DINNER` = case_when(
+    feed_plan == 1 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 2 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 3 ~ pos[1] + pos[2] + pos[3] * .33,
+    feed_plan == 4 ~ pos[1] + pos[2] + pos[3] * 0)
+  ) %>% 
+
+  mutate(`UGR(M)-BREAKFAST` = case_when(
+    feed_plan == 1 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 2 ~ pos[1] + pos[2] + pos[3] * .5,
+    feed_plan == 3 ~ pos[1] + pos[2] + pos[3] * 1,
+    feed_plan == 4 ~ pos[1] + pos[2] + pos[3] * .33)
+  ) %>% 
+
+  mutate(`UGR(M)-LUNCH/DINNER` = case_when(
+    feed_plan == 1 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 2 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 3 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 4 ~ pos[1] + pos[2] + pos[3] * .33)
+  )
+
+```
+
+
+
+```{r DOS 4 Continued}
+
+DOS4_df_updated <- DOS4_df %>%
+  mutate(`MEALS READY TO EAT (MRE)` = case_when(
+    feed_plan == 1 ~ pos[1] + pos[2] + pos[3] * 3,
+    feed_plan == 2 ~ pos[1] + pos[2] + pos[3] * 2,
+    feed_plan == 3 ~ pos[1] + pos[2] + pos[3] * .66,
+    feed_plan == 4 ~ pos[1] + pos[2] + pos[3] * .47)
+  ) %>% 
+
+  mutate(`UGR(H&S)-BREAKFAST` = case_when(
+    feed_plan == 1 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 2 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 3 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 4 ~ pos[1] + pos[2] + pos[3] * .2)
+  ) %>% 
+
+  mutate(`UGR(H&S)-LUNCH/DINNER` = case_when(
+    feed_plan == 1 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 2 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 3 ~ pos[1] + pos[2] + pos[3] * .33,
+    feed_plan == 4 ~ pos[1] + pos[2] + pos[3] * 0)
+  ) %>% 
+
+  mutate(`UGR(M)-BREAKFAST` = case_when(
+    feed_plan == 1 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 2 ~ pos[1] + pos[2] + pos[3] * .5,
+    feed_plan == 3 ~ pos[1] + pos[2] + pos[3] * 1,
+    feed_plan == 4 ~ pos[1] + pos[2] + pos[3] * .33)
+  ) %>% 
+
+  mutate(`UGR(M)-LUNCH/DINNER` = case_when(
+    feed_plan == 1 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 2 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 3 ~ pos[1] + pos[2] + pos[3] * 0,
+    feed_plan == 4 ~ pos[1] + pos[2] + pos[3] * .33)
+  )
+
+```
+
+
+
+```{r Combine Dataframes}
+
+scoutflow_df <- rbindlist(list(DOS1_df_updated, DOS2_df_updated, DOS3_df_updated, DOS4_df_updated))
+
+```
+
+
+
+
+```{r}
+
+df_viz <- data.frame(Date = scoutflow_df$Date,
+       scouts_cumulative <- cumsum(scoutflow_df$scouts_Numbers), 
+       HS_breakfast_cumulative <- cumsum(scoutflow_df$`UGR(H&S)-BREAKFAST`),
+       HS_lunch_dinner_cumulative <- cumsum(scoutflow_df$`UGR(H&S)-LUNCH/DINNER`),
+       M_breakfast_cumulative <- cumsum(scoutflow_df$`UGR(M)-BREAKFAST`),
+       M_lunch_dinner_cumulative <- cumsum(scoutflow_df$`UGR(M)-LUNCH/DINNER`),
+       Box_Lunches_cumulative <- cumsum(scoutflow_df$`Box Lunches`))
+
+```
+
+
+
+```{r}
+
+names(df_viz)[2] <- "Cumulative Scouts"
+names(df_viz)[3] <- "H&S Breakfast"
+names(df_viz)[4] <- "H&S Lunch/Dinner"
+names(df_viz)[5] <- "M Breakfast"
+names(df_viz)[6] <- "M Lunch/Dinner"
+names(df_viz)[7] <- "Box Lunches"
+
+
+```
+
+
+
+```{r}
+
+
+df_viz_final <- melt(df_viz, id.vars = 'Date', variable.name = 'Series')
+
+
+```
+
+
+
+
+
+```{r Visualization 1}
+
+ggplot(df_viz_final, aes(Date,value)) + geom_line(aes(colour = Series)) +
+  labs(col = "") 
+
+```
